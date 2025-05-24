@@ -1,4 +1,4 @@
-# 時空圖時差優化工具 (Spacetime Diagram Offset Optimization Tool)
+# 時空圖時差優化工具 (TimeSpace Diagram Offset Optimization Tool)
 
 本專案為一個網頁應用程式，目的協助交通工程師或研究人員進行路網號誌時制設計、車流模擬，並透過最佳化演算法（如遺傳演算法 GA、模擬退火 SA、NSGA-II）優化路口間的號誌時差，以期達到最大化綠波效益。
 
