@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>時空圖時差優化</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="designPanel">
+    <h2>路網設計區</h2>
+    <div class="button-group">
+      <button id="importJsonBtn" class="file-upload-button">選擇檔案</button>
+      <input type="file" id="importJsonInput" accept=".json" style="display: none;">
+      <button id="exportJsonBtn">導出為 JSON</button>
+    </div>
+	<div id="canvasContainer">
+      <canvas id="designCanvas" width="2000" height="800"></canvas>
+    </div>
+    <div id="settingsPanel">
+	  <div id="titleBar">
+		<span>路口設定</span>
+		<span id="minimizeBtn" title="縮小"></span> <!-- 移除「-」，用 CSS 繪製 -->
+	  </div>
+      <div id="circleInfo">未選取</div>
+	  <div id="panelContent">
+		<form id="circleForm" style="display:none;">
+		  <div>
+		    <label>路口名稱:</label>
+		    <input type="text" id="intersectionName" placeholder="輸入路口名稱（可選）">
+		  </div>
+		  <div><label>時差(秒):</label><input type="number" id="offset" value="0" min="0"></div>		  
+		  <div><label>鎖定:</label><input type="checkbox" id="isLocked"></div>
+		  <div><label>週期:</label><span id="cycleTimeDisplay">0 秒</span></div>
+		  <div><label>主燈號:</label><input type="checkbox" id="isMaster"></div>
+		  <div id="masterNamePanel" style="display:none;"><label>主燈號名稱:</label><input type="text" id="masterName" placeholder="輸入名稱（可選）"></div>
+		  <div id="refMasterPanel" style="display:none;"><label>引用主燈號:</label><select id="refMaster"><option value="">不引用</option></select></div>
+		  <!-- 其他現有欄位保持不變 -->
+		  <div class="spawn-section"><label>起點：</label><input type="checkbox" id="isSpawn"></div>
+		  <div><label>車輛頻率(秒):</label><input type="number" id="spawnFreq" value="3" min="0"></div>
+		  <div id="spawnDirectionPanel" style="display:none;">
+			<label>行駛方向:</label>
+			<select id="spawnDirection">
+			  <option value="E">東</option>
+			  <option value="W">西</option>
+			  <option value="S">南</option>
+			  <option value="N">北</option>
+			  <option value="NE">↗</option>
+			  <option value="SW">↙</option>	  
+			  <option value="SE">↘</option>
+			  <option value="NW">↖</option>
+			</select>
+			<div><label>起點名稱:</label><input type="text" id="spawnName" placeholder="輸入名稱（可選）"></div>
+		  </div>
+		  <div class="phase-section"><label>時相數量:</label><input type="number" id="phaseCount" value="2" min="2" max="6"></div>
+		  <div id="phasesContainer"></div>
+		</form>
+		</div>
+    </div>
+  </div>
+  <div id="simPanel">
+    <h2>時空圖與優化</h2>
+    <div class="button-group">
+      <span id="maxGreenWaveTime">最大綠波秒數：0.00 秒</span>
+      <button id="exportSpacetimeBtn">匯出時空圖</button>
+      <button id="exportTrajectoriesBtn">匯出軌跡</button>
+      <button id="importTrajectoriesBtn" class="file-upload-button">匯入軌跡</button>
+      <input type="file" id="importTrajectoriesInput" accept=".json" style="display: none;">
+    </div>
+    
+    <canvas id="spacetimeCanvas" width="100%" height="450"></canvas>
+    
+    <div class="button-group">
+      <button id="optimizeOffsetBtn">優化時差</button>
+      <!--<select id="optimizationMethod">
+		<option value="SA">單目標 SA</option>
+		<!--<option value="SA3">單目標 SA(通過路口數)</option>
+		<option value="SA3_setting">單目標 SA(客製化)</option>
+		<option value="GA3">單目標 GA(通過路口數)</option>
+		<option value="GA3_setting">單目標 GA(客製化)</option>
+        <option value="MOSA">多目標 MOSA</option>
+        <option value="NSGAII">多目標 NSGA-II</option>
+		<option value="TWO">雙目標 NSGA-II</option>
+		<option value="TWO3">雙目標 NSGA-II(通過距離)</option>
+		<option value="TWO3_setting">雙目標 NSGA-II(客製化)</option>
+        <option value="Random">隨機</option>
+      </select>-->
+      <button id="startSimBtn">軌跡動態模擬</button>
+	  <button id="someButton" style="display:none;">綠波II</button>
+      <button id="stopSimBtn" style="display:none;">停止模擬</button>
+    </div>
+    
+    <div class="button-group">
+      <label>車輛速度(km/h):</label>
+      <input type="number" id="vehicleSpeedInput" value="50" min="10" step="1" style="width: 60px;">
+      <label>選擇起點:</label>
+      <select id="spawnPointSelector"></select>
+      <label style="display: none;">快轉:</label>
+      <select id="timeScaleSelector" style="display: none;">
+        <option value="1">1 倍速</option>
+        <option value="2">2 倍速</option>
+        <option value="3" selected>3 倍速</option>
+        <option value="4">4 倍速</option>
+        <option value="10">10 倍速</option>
+      </select>
+    </div>
+    
+    <h2>多目標</h2>
+    <div id="Pareto"></div>
+    <div id="ParetoIO"></div>
+    
+    <h2 style="display:none;">優化過程統計圖</h2>
+    <canvas id="fitnessChartCanvas" width="800" height="800" style="display: none;"></canvas>
+    <button id="toggleFitnessChartBtn" style="display:none;">顯示/隱藏統計圖</button>
+    
+    <h2>行車統計</h2>
+    <button id="statsBtn">簡易統計</button>
+	<button id="statsBtn_segment">詳細統計</button>
+    <div id="speedStats"></div>
+  </div>
+
+	<h2 style="display:none;">車流模擬區</h2>
+	<div id="simControlPanel" style="display:none;"></div>	
+	<canvas id="simCanvas" width="600" height="400" style="display:none;"></canvas>	
+  
+  <div id="loadingOverlay">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 24px; text-align: center;">
+      <div id="loadingText">正在優化中，請稍候...</div>
+      <progress id="loadingProgress" value="0" max="100"></progress>
+    </div>
+  </div>
+<!-- 在 </body> 前添加小圖標 -->
+<!-- 修改縮小後的圖示，添加文字和 tooltip -->
+<div id="minimizedIcon" style="display: none;">
+  <div class="icon-wrapper" data-tooltip="放大">
+    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB4PSI0IiB5PSI0IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHJ4PSIyIiBmaWxsPSIjMzQ5OERCIi8+Cjwvc3ZnPg==" alt="恢復視窗">
+    <span class="icon-text">路口設定</span>
+  </div>
+</div>
+  
+  <script src="code_1601_H_8_02.js"></script>
+  <script src="code_1603_seqsat_6.js"></script>
+  <script src="code_1602_ga_19.js"></script>
+  <script src="code_1602_ga_plus.js"></script>
+  <script src="code_1606_greenwave_5.js"></script>
+  <!--<script src="code_1607_noneed.js"></script> 可以不加，已用不到-->
+  
+</body>
+</html>
