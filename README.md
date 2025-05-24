@@ -13,6 +13,9 @@
 -   `code_1602_ga_plus.js`: 包含其他優化演算法的變體或輔助函數 (例如 `optimizeSA3`, `optimizeGA3`, `optimizeNSGAIIForTwoSpawnPoints3` 等，基於通過路口/距離比例的適應度函數)。
 -   `code_1606_greenwave_5.js`: 負責計算綠波相關的指標，例如 `computeRatioMatrix`，用於評估不同路徑的綠波品質。
 
+## 立即使用
+網址 https://taichungbus.somee.com/offset/main.html
+
 ## 功能亮點 ✨
 
 * **視覺化路網設計**：在格點畫布上點選建立路口、連線設定路段及距離。
