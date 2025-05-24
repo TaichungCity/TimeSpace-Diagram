@@ -4,6 +4,9 @@
 
 使用者可以視覺化地建構路網，設定各路口的號誌週期、時相、時差等參數，並觀察車輛在時空圖上的運行軌跡。本工具亦提供 Pareto 最優解的匯出與匯入功能，方便使用者比較與套用不同的優化方案。
 
+## 立即使用
+網址 https://taichungbus.somee.com/offset/main.html
+
 ## 專案結構
 
 -   `main.html`: 主要的 HTML 結構檔案。
@@ -12,9 +15,6 @@
 -   `code_1602_ga_5.js`: 包含單目標及多目標優化演算法 (SA, GA, NSGA-II)、Pareto 解的選擇與應用介面、Pareto 解的匯出與匯入邏輯。
 -   `code_1602_ga_plus.js`: 包含其他優化演算法的變體或輔助函數 (例如 `optimizeSA3`, `optimizeGA3`, `optimizeNSGAIIForTwoSpawnPoints3` 等，基於通過路口/距離比例的適應度函數)。
 -   `code_1606_greenwave_5.js`: 負責計算綠波相關的指標，例如 `computeRatioMatrix`，用於評估不同路徑的綠波品質。
-
-## 立即使用
-網址 https://taichungbus.somee.com/offset/main.html
 
 ## 功能亮點 ✨
 
