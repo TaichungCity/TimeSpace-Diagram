@@ -1,4 +1,4 @@
-let fixedSimulationDuration = 900; // 固定模擬時間區間，單位秒，預設300秒
+//let fixedSimulationDuration = 900; // 固定模擬時間區間，單位秒，預設300秒
 
 const GRID_SPACING_X = 100; // 設計區水平間距（像素）
 const GRID_SPACING_Y = 100; // 設計區垂直間距（像素）
@@ -6,6 +6,122 @@ let GRID_ROWS = 20; // 假設 8 行，可根據實際需求調整
 let GRID_COLS = 20; // 假設 8 列，可根據實際需求調整
 const CIRCLE_RADIUS = 15; // 圓點半徑，與原始一致
 const METER_TO_PIXEL = 1;//可不要，但為了相容，暫時保留，會影響統計
+
+function gcd(a, b) {
+    a = Math.abs(Math.round(a)); // Ensure positive integers
+    b = Math.abs(Math.round(b)); // Ensure positive integers
+    if (b === 0) return a;
+    return gcd(b, a % b);
+}
+
+function lcm(a, b) {
+    a = Math.abs(Math.round(a));
+    b = Math.abs(Math.round(b));
+    if (a === 0 || b === 0) return 0;
+    // Handle potential floating point issues by working with integers if possible
+    // or ensure inputs to gcd are integers.
+    let result = Math.abs(a * b) / gcd(a, b);
+    return Math.round(result); // Round to nearest integer for cycle times
+}
+
+function calculateLcmOfSelectedCycleTimes() {
+    const selectedCircles = gridCircles.filter(c => c.selected && !c.spawnEnabled); // Consider only selected, non-spawn intersections
+
+    if (selectedCircles.length === 0) {
+        document.getElementById("lcmDurationValue").textContent = "N/A (無適用路口)";
+        return 900; // Default if no relevant circles are selected
+    }
+
+    const cycleTimes = selectedCircles.map(circle => {
+        const cycle = getCycleLength(circle); // Assumes getCycleLength returns a number
+        return Math.round(cycle); // Ensure cycle times are integers for LCM
+    }).filter(ct => ct > 0); // Filter out zero or negative cycle times
+
+    if (cycleTimes.length === 0) {
+        document.getElementById("lcmDurationValue").textContent = "N/A (無有效週期)";
+        return 900; // Default if no valid cycle times
+    }
+
+    let resultLcm = cycleTimes[0];
+    for (let i = 1; i < cycleTimes.length; i++) {
+        resultLcm = lcm(resultLcm, cycleTimes[i]);
+        if (resultLcm > 10000) { // Intermediate cap to prevent excessively large LCMs during calculation
+            document.getElementById("lcmDurationValue").textContent = ">1000 (已達上限)";
+            return 1000;
+        }
+    }
+    const finalLcm = Math.min(resultLcm, 1000); // Final value capped at 1000
+    document.getElementById("lcmDurationValue").textContent = finalLcm;
+    return finalLcm;
+}
+
+function updateSimulationDurationUI(duration) {
+    const inputEl = document.getElementById("simulationDurationInput");
+    if (inputEl) inputEl.value = Math.round(duration);
+    calculateLcmOfSelectedCycleTimes(); // Keep suggested LCM updated
+}
+
+function applyNewSimulationDuration(newDuration, fromUserInput = false) {
+    let validatedDuration = Math.round(Number(newDuration)); // Ensure integer
+
+    if (isNaN(validatedDuration) || validatedDuration <= 0) {
+        console.warn("無效的模擬時間輸入，將使用當前值或預設值。");
+        validatedDuration = calculateLcmOfSelectedCycleTimes(); // Fallback to LCM
+    }
+
+    validatedDuration = Math.min(Math.max(10, validatedDuration), 1000); // Min 10s, Max 1000s
+
+    if (fixedSimulationDuration !== validatedDuration) {
+        fixedSimulationDuration = validatedDuration;
+        console.log(`模擬時間區間已更新為: ${fixedSimulationDuration} 秒`);
+
+        // Simulation parameters that depend on fixedSimulationDuration might need updates
+        if (simulationStarted) { // Only if simulation has been run at least once
+            precomputeTrafficLightStates();
+            updateSpacetimeOffscreen(); // This will use the new fixedSimulationDuration
+            renderSpawnDataDisplay(); // To recalculate probabilities etc.
+        }
+    }
+    // Always update the UI to reflect the actual applied (and validated) value
+    document.getElementById("simulationDurationInput").value = fixedSimulationDuration;
+
+    // If the update was from user input, we don't need to re-calculate LCM for display immediately,
+    // but if it was from reset, the LCM is already displayed.
+    if (!fromUserInput) {
+         calculateLcmOfSelectedCycleTimes(); // Ensure suggestion is current
+    }
+}
+
+// (在 DOMContentLoaded 或類似的初始化函數中)
+function setupSimulationDurationControls() {
+    const initialLcmDuration = calculateLcmOfSelectedCycleTimes();
+    fixedSimulationDuration = initialLcmDuration; // Set initial global value
+    updateSimulationDurationUI(fixedSimulationDuration); // Update input field
+
+    document.getElementById("applySimDurationBtn").addEventListener("click", () => {
+        const userInputDuration = document.getElementById("simulationDurationInput").value;
+        applyNewSimulationDuration(userInputDuration, true); // true indicates from user input
+        alert(`模擬時間區間已設定為 ${fixedSimulationDuration} 秒。`);
+    });
+
+    document.getElementById("resetSimDurationBtn").addEventListener("click", () => {
+        const lcmDuration = parseFloat(document.getElementById("lcmDurationValue").textContent);
+        if (!isNaN(lcmDuration)) {
+             applyNewSimulationDuration(lcmDuration);
+        } else {
+            // Fallback if LCM parsing failed
+            applyNewSimulationDuration(calculateLcmOfSelectedCycleTimes());
+        }
+        alert(`模擬時間區間已重設為建議預設值 ${fixedSimulationDuration} 秒。`);
+    });
+
+    // Optional: Update suggested LCM when simulationDurationInput changes,
+    // or rely on other events (like circle selection) to update it.
+    // document.getElementById("simulationDurationInput").addEventListener("input", () => {
+    //     calculateLcmOfSelectedCycleTimes(); // Keep suggestion fresh
+    // });
+}
+
 
 // 禁用縮放相關事件
 
@@ -23,6 +139,15 @@ function updateCycleTimeDisplay(circle) {
   document.getElementById("cycleTimeDisplay").textContent = `${cycleTime} 秒`;
 }
 
+
+// (在 DOMContentLoaded 或類似的初始化函數中)
+function initializeIdmPanel() {
+    document.getElementById("idm_v0").value = (IDM_PARAMS.v0 * 3.6).toFixed(1); // m/s to km/h
+    document.getElementById("idm_T").value = IDM_PARAMS.T.toFixed(1);
+    document.getElementById("idm_a").value = IDM_PARAMS.a.toFixed(1);
+    document.getElementById("idm_b").value = IDM_PARAMS.b.toFixed(1);
+    document.getElementById("idm_s0").value = IDM_PARAMS.s0.toFixed(1);
+}
 // 在網頁載入時初始化匯入/匯出介面
 document.addEventListener("DOMContentLoaded", () => {
   const settingsPanel = document.getElementById("settingsPanel");
@@ -95,6 +220,50 @@ document.addEventListener("DOMContentLoaded", () => {
       settingsPanel.style.top = `${currentY}px`;
     }
   });
+  
+    initializeIdmPanel(); // 初始化 IDM 參數面板的顯示
+	setupSimulationDurationControls();
+
+    // 添加套用按鈕的事件監聽
+    document.getElementById("applyIdmParamsBtn").addEventListener("click", () => {
+        const new_v0_kmh = parseFloat(document.getElementById("idm_v0").value);
+        IDM_PARAMS.v0 = new_v0_kmh / 3.6; // km/h to m/s
+        IDM_PARAMS.T = parseFloat(document.getElementById("idm_T").value);
+        IDM_PARAMS.a = parseFloat(document.getElementById("idm_a").value);
+        IDM_PARAMS.b = parseFloat(document.getElementById("idm_b").value);
+        IDM_PARAMS.s0 = parseFloat(document.getElementById("idm_s0").value);
+
+        // 更新上方 vehicleSpeedInput 以保持同步
+        document.getElementById("vehicleSpeedInput").value = new_v0_kmh.toFixed(0);
+
+        console.log("IDM 參數已更新:", IDM_PARAMS);
+        alert("IDM 參數已套用！");
+
+        // 如果參數變更需要立即影響時空圖或預計算狀態，可以在此處調用相關更新函數
+        // 例如： precomputeTrafficLightStates(); // (如果燈號邏輯依賴IDM參數)
+        // updateSpacetimeOffscreen(); // (如果時空圖需要重繪)
+        // 如果正在模擬，可能需要提示使用者重新開始模擬以使所有更改生效
+    });
+
+    // 連動 idm_v0 與 vehicleSpeedInput
+    const vehicleSpeedInput = document.getElementById("vehicleSpeedInput");
+    const idm_v0_input = document.getElementById("idm_v0");
+
+    vehicleSpeedInput.addEventListener("change", function() {
+        const speedKmH = parseFloat(this.value);
+        idm_v0_input.value = speedKmH.toFixed(1);
+        // IDM_PARAMS.v0 的更新已在您原有的 vehicleSpeedInput 事件監聽中處理
+    });
+
+    idm_v0_input.addEventListener("change", function() {
+        const speedKmH = parseFloat(this.value);
+        vehicleSpeedInput.value = speedKmH.toFixed(0);
+        // 觸發 vehicleSpeedInput 的 change 事件以更新 IDM_PARAMS.v0 和相關圖表
+        vehicleSpeedInput.dispatchEvent(new Event('change'));
+    });  
+  
+  
+  
 });
 
 let gcurrentX, gcurrentY
