@@ -8,7 +8,7 @@
 網址 https://taichungbus.somee.com/offset/main.html
 
 ## 教學影片(持續增加中)
--  路口設定https://www.youtube.com/watch?v=NddRZcEUSIE
+-  路口設定https://www.youtube.com/watch?v=EePOvNXtuew
 
 ## 技巧：
 -   左鍵點圓點建立路口
