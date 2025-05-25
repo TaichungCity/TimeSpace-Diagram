@@ -531,6 +531,7 @@ button:active {
   transform: scale(0.98);
 }
 
+/* Tooltip 樣式 (已存在於您的 styles.css，此處確保其適用性) */
 [tooltip] {
   position: relative;
 }
@@ -540,23 +541,25 @@ button:active {
   position: absolute;
   bottom: 100%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(-5px); /* 向上偏移一些 */
   background: #2d3748;
   color: white;
-  padding: 4px 8px;
+  padding: 6px 10px; /* 稍微調整 padding */
   border-radius: 4px;
   font-size: 12px;
+  font-weight: normal; /* Tooltip 文字不需要粗體 */
   white-space: nowrap;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.2s ease;
+  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease; /* 添加 transform 動畫 */
   pointer-events: none;
+  z-index: 100; /* 確保 tooltip 在最上層 */
 }
 
 [tooltip]:hover::after {
   opacity: 1;
   visibility: visible;
-  bottom: calc(100% + 5px);
+  transform: translateX(-50%) translateY(0); /* 懸停時回到正常位置 */
 }
 
 @keyframes fadeIn {
@@ -659,4 +662,120 @@ button:active {
 
 #speedStats h3, #speedStats h4 {
   margin: 10px 0;
+}
+
+
+#idmParamsPanel {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  padding: 25px;
+  margin: 24px 1% 24px 1%; /* 與 designPanel/simPanel 的 margin 一致 */
+  transition: box-shadow 0.3s ease;
+  animation: fadeIn 0.5s ease-out;
+}
+
+#idmParamsPanel:hover {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+#idmParamsPanel h2 {
+  color: #2c3e50;
+  font-size: 1.6em;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #3498db;
+  position: relative;
+}
+
+#idmParamsPanel h2::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 50px;
+  height: 2px;
+  background-color: #2ecc71;
+}
+
+.param-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  gap: 10px;
+}
+
+.param-group label {
+  font-weight: 600;
+  color: #4a5568;
+  min-width: 150px; /* 調整以對齊標籤 */
+  cursor: help; /* 提示使用者有 tooltip */
+}
+
+.param-group input[type="number"] {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  width: 100px; /* 固定輸入框寬度 */
+  transition: all 0.3s ease;
+  background-color: #fff;
+  color: #4a5568;
+}
+
+.param-group input[type="number"]:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+  outline: none;
+}
+
+.param-group span {
+  font-size: 14px;
+  color: #718096;
+}
+
+#applyIdmParamsBtn {
+  background-color: #1abc9c; /* 不同於一般按鈕的顏色 */
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  padding: 10px 20px;
+  margin-top: 10px; /* 與上方元素間隔 */
+  border-radius: 6px;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+#applyIdmParamsBtn:hover {
+  background-color: #16a085;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+#applyIdmParamsBtn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+#suggestedDurationLabel {
+  margin-bottom: 10px; /* Add some space below the suggestion */
+}
+
+#applySimDurationBtn, #resetSimDurationBtn {
+  background-color: #5dade2; /* A slightly different blue */
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  padding: 8px 15px; /* Slightly smaller padding */
+  margin-right: 10px;
+  border-radius: 6px;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+#applySimDurationBtn:hover, #resetSimDurationBtn:hover {
+  background-color: #3498db;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
