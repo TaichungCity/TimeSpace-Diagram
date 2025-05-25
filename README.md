@@ -9,6 +9,7 @@
 
 ## 教學影片(持續增加中)
 -  路口設定https://www.youtube.com/watch?v=EePOvNXtuew
+-  時差優化(單一起點)https://www.youtube.com/watch?v=dVKS-7DhBHY
 
 ## 技巧：
 -   左鍵點圓點建立路口
