@@ -57,7 +57,53 @@
 		</form>
 		</div>
     </div>
+	
+	<div id="idmParamsPanel">
+      <h2>IDM 車流模型參數設定</h2>
+      <div class="param-group">
+        <label for="idm_v0" tooltip="車輛期望達到的最大速度。與上方『車輛速度』連動。">期望速度 (v₀)</label>
+        <input type="number" id="idm_v0" value="50" min="1" step="1">
+        <span>km/h</span>
+      </div>
+      <div class="param-group">
+        <label for="idm_T" tooltip="車輛與前車保持的安全反應時間。">期望時間間距 (T)</label>
+        <input type="number" id="idm_T" value="2.0" min="0.1" step="0.1">
+        <span>秒</span>
+      </div>
+      <div class="param-group">
+        <label for="idm_a" tooltip="車輛能達到的最大加速度。">最大加速度 (a)</label>
+        <input type="number" id="idm_a" value="1.5" min="0.1" step="0.1">
+        <span>m/s²</span>
+      </div>
+      <div class="param-group">
+        <label for="idm_b" tooltip="車輛在正常情況下進行減速的最大值。">舒適減速度 (b)</label>
+        <input type="number" id="idm_b" value="2.0" min="0.1" step="0.1">
+        <span>m/s²</span>
+      </div>
+      <div class="param-group">
+        <label for="idm_s0" tooltip="車輛在靜止狀態下與前車保持的最小距離。">最小靜止間距 (s₀)</label>
+        <input type="number" id="idm_s0" value="2" min="0" step="0.5">
+        <span>公尺</span>
+      </div>  	  
+      <button id="applyIdmParamsBtn" style="margin-left: 160px;">套用IDM參數</button>
+	  
+      <hr style="margin: 20px 0;">
+      <div class="param-group">
+        <label for="simulationDurationInput" tooltip="設定模擬的總時間長度。最大1000秒。">模擬時間區間</label>
+        <input type="number" id="simulationDurationInput" value="900" min="10" max="1000" step="10">
+        <span>秒</span>
+      </div>
+      <div style="margin-left: 160px; font-size: 0.9em; color: #555;" id="suggestedDurationLabel">
+        建議預設 (路口週期最小公倍數): <span id="lcmDurationValue">N/A</span> 秒
+      </div>
+      <button id="applySimDurationBtn" style="margin-left: 160px; margin-top: 5px;">套用時間設定</button>
+      <button id="resetSimDurationBtn" style="margin-top: 5px;">使用建議預設</button>
+      <hr style="margin: 20px 0;">	  
+    </div>	
   </div>
+  
+ 
+  
   <div id="simPanel">
     <h2>時空圖與優化</h2>
     <div class="button-group">
