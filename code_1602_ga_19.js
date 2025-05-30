@@ -1,3 +1,17 @@
+// At the top of code_1602_ga_19.js
+let saInitialTemp = 1000;
+let saCoolingRate = 0.95;
+let saMinTemp = 1;
+
+let nsgaIIForTwoPopulationSize = 50;
+let nsgaIIForTwoMaxGenerations = 5;
+
+let nsgaIIPopulationSize = 20; // For multi-objective (>=3 spawn points)
+let nsgaIIMaxGenerations = 10; // For multi-objective (>=3 spawn points)
+
+let commonMutationRate = 0.1; // Used by both NSGA-II variants
+
+
 // 全局變數儲存 GA 結果
 let gaBestIndividual = null;
 let gaBestFitness = null;
@@ -104,9 +118,9 @@ function optimizeSA() {
       currentFitness = gaBestFitness;
     }
 
-    const initialTemp = 1000;
-    const coolingRate = 0.95;
-    const minTemp = 1;
+	const initialTemp = saInitialTemp;
+	const coolingRate = saCoolingRate;
+	const minTemp = saMinTemp;
 
     let bestIndividual = currentSolution.slice();
     let bestFitness = currentFitness;
@@ -189,8 +203,8 @@ function optimizeNSGAII() {
     }
 
     const cycleLengths = optimizableCircles.map(circle => getCycleLength(circle));
-    const populationSize = 20; // 或者您原本設定的值
-    const maxGenerations = 10; // 或者您原本設定的值
+    const populationSize = nsgaIIPopulationSize; // 或者您原本設定的值
+    const maxGenerations = nsgaIIMaxGenerations; // 或者您原本設定的值
     let generation = 0;
 
     function calculateMultiObjectiveFitness(individual) {
@@ -365,8 +379,8 @@ function optimizeNSGAII() {
           const parent1 = tournamentSelection(population, fronts, allCrowdingDistances);
           const parent2 = tournamentSelection(population, fronts, allCrowdingDistances);
           const [child1, child2] = crossover(parent1, parent2);
-          offspring.push(Math.random() < 0.1 ? mutate(child1) : child1);
-          if (offspring.length < populationSize) offspring.push(Math.random() < 0.1 ? mutate(child2) : child2);
+          offspring.push(Math.random() < commonMutationRate ? mutate(child1) : child1);
+          if (offspring.length < populationSize) offspring.push(Math.random() < commonMutationRate ? mutate(child2) : child2);
         }
 
         population = population.concat(offspring);
@@ -438,8 +452,8 @@ function optimizeNSGAIIForTwoSpawnPoints() {
     }
 
     const cycleLengths = optimizableCircles.map(circle => getCycleLength(circle));
-    const populationSize = 50;
-    const maxGenerations = 5;
+    const populationSize = nsgaIIForTwoPopulationSize;
+    const maxGenerations = nsgaIIForTwoMaxGenerations;
     let generation = 0;
 
     function calculateMultiObjectiveFitness(individual) {
@@ -581,8 +595,8 @@ function optimizeNSGAIIForTwoSpawnPoints() {
           const parent1 = tournamentSelection(population, fronts, crowdingDistances);
           const parent2 = tournamentSelection(population, fronts, crowdingDistances);
           const [child1, child2] = crossover(parent1, parent2);
-          offspring.push(Math.random() < 0.1 ? mutate(child1) : child1);
-          if (offspring.length < populationSize) offspring.push(Math.random() < 0.1 ? mutate(child2) : child2);
+          offspring.push(Math.random() < commonMutationRate ? mutate(child1) : child1);
+          if (offspring.length < populationSize) offspring.push(Math.random() < commonMutationRate ? mutate(child2) : child2);
         }
 
         population = population.concat(offspring);
@@ -1000,6 +1014,53 @@ function ParetoUI() {
   // originalIndexForContext 應為當前 UI 上的 selectedSpawnIndex
   const currentSelectedSpawnIdx = (typeof selectedSpawnIndex === 'number' && selectedSpawnIndex >=0) ? selectedSpawnIndex : 0;
   setupParetoIO(currentSelectedSpawnIdx);
+}
+
+function initializeAlgoParamsUI() {
+    // SA Params
+    document.getElementById("saInitialTemp").value = saInitialTemp;
+    document.getElementById("saCoolingRate").value = saCoolingRate;
+    document.getElementById("saMinTemp").value = saMinTemp;
+
+    // NSGA-II for 2 Spawn Points Params
+    document.getElementById("nsgaII2spPopSize").value = nsgaIIForTwoPopulationSize;
+    document.getElementById("nsgaII2spMaxGen").value = nsgaIIForTwoMaxGenerations;
+
+    // NSGA-II for Multi Spawn Points Params
+    document.getElementById("nsgaIIMultiPopSize").value = nsgaIIPopulationSize;
+    document.getElementById("nsgaIIMultiMaxGen").value = nsgaIIMaxGenerations;
+
+    // Common GA Params
+    document.getElementById("commonMutationRate").value = commonMutationRate;
+
+    // Event listener for the apply button
+    document.getElementById("applyAlgoParamsBtn").addEventListener("click", () => {
+        // SA
+        saInitialTemp = parseFloat(document.getElementById("saInitialTemp").value) || 1000;
+        saCoolingRate = parseFloat(document.getElementById("saCoolingRate").value) || 0.95;
+        saMinTemp = parseFloat(document.getElementById("saMinTemp").value) || 1;
+
+        // NSGA-II 2SP
+        nsgaIIForTwoPopulationSize = parseInt(document.getElementById("nsgaII2spPopSize").value) || 50;
+        nsgaIIForTwoMaxGenerations = parseInt(document.getElementById("nsgaII2spMaxGen").value) || 5;
+
+        // NSGA-II Multi
+        nsgaIIPopulationSize = parseInt(document.getElementById("nsgaIIMultiPopSize").value) || 20;
+        nsgaIIMaxGenerations = parseInt(document.getElementById("nsgaIIMultiMaxGen").value) || 10;
+
+        // Common
+        commonMutationRate = parseFloat(document.getElementById("commonMutationRate").value) || 0.1;
+
+        // Basic validation/capping (optional, but good practice)
+        saCoolingRate = Math.max(0.8, Math.min(0.99, saCoolingRate));
+        commonMutationRate = Math.max(0, Math.min(1, commonMutationRate));
+
+        alert("優化演算法參數已套用！");
+        console.log("Updated SA Params:", { saInitialTemp, saCoolingRate, saMinTemp });
+        console.log("Updated NSGA-II 2SP Params:", { nsgaIIForTwoPopulationSize, nsgaIIForTwoMaxGenerations });
+        console.log("Updated NSGA-II Multi Params:", { nsgaIIPopulationSize, nsgaIIMaxGenerations });
+        console.log("Updated Common Mutation Rate:", commonMutationRate);
+    });
 }
 
 // 確保在 optimizeNSGAIIForTwoSpawnPoints 和 optimizeNSGAIIForTwoSpawnPoints3 (如果它們也產生 Pareto 解並調用 showParetoSelectionInterface)
