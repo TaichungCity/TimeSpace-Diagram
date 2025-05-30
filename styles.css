@@ -779,3 +779,47 @@ button:active {
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
+
+#optimizationAlgoParamsPanel h3 {
+  color: #2c3e50;
+  font-size: 1.4em; /* Slightly smaller than panel title */
+  margin-top: 10px;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #7f8c8d; /* Lighter border */
+}
+
+.algo-param-section {
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid #ecf0f1;
+  border-radius: 6px;
+  background-color: #fdfefe;
+}
+
+.algo-param-section h4 {
+  color: #34495e;
+  font-size: 1.1em;
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+/* param-group styling should already be defined and will apply */
+
+#applyAlgoParamsBtn {
+  background-color: #9b59b6; /* Purple color for distinction */
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  padding: 8px 15px;
+  border-radius: 6px;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+#applyAlgoParamsBtn:hover {
+  background-color: #8e44ad;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
