@@ -52,7 +52,7 @@
 			</select>
 			<div><label>起點名稱:</label><input type="text" id="spawnName" placeholder="輸入名稱（可選）"></div>
 		  </div>
-		  <div class="phase-section"><label>時相數量:</label><input type="number" id="phaseCount" value="2" min="2" max="6"></div>
+		  <div class="phase-section"><label>時相數量:</label><input type="number" id="phaseCount" value="2" min="2" max="20"></div>
 		  <div id="phasesContainer"></div>
 		</form>
 		</div>
@@ -98,7 +98,62 @@
       </div>
       <button id="applySimDurationBtn" style="margin-left: 160px; margin-top: 5px;">套用時間設定</button>
       <button id="resetSimDurationBtn" style="margin-top: 5px;">使用建議預設</button>
-      <hr style="margin: 20px 0;">	  
+      <hr style="margin: 20px 0;">
+
+        <h2>優化演算法參數設定</h2>
+
+        <div class="algo-param-section">
+          <h4>模擬退火 (SA) - 單目標 (生成點=1時使用)</h4>
+          <div class="param-group">
+            <label for="saInitialTemp" tooltip="模擬退火的起始溫度。">初始溫度</label>
+            <input type="number" id="saInitialTemp" value="1000" min="1">
+          </div>
+          <div class="param-group">
+            <label for="saCoolingRate" tooltip="模擬退火的降溫速率 (0.8 - 0.99)。">降溫速率</label>
+            <input type="number" id="saCoolingRate" value="0.95" min="0.8" max="0.99" step="0.01">
+          </div>
+          <div class="param-group">
+            <label for="saMinTemp" tooltip="模擬退火的終止溫度。">最小溫度</label>
+            <input type="number" id="saMinTemp" value="1" min="0.1">
+          </div>
+        </div>
+
+        <div class="algo-param-section">
+          <h4>NSGA-II - 雙目標 (生成點=2時使用)</h4>
+          <div class="param-group">
+            <label for="nsgaII2spPopSize" tooltip="NSGA-II (雙目標) 的種群數量。">種群數量</label>
+            <input type="number" id="nsgaII2spPopSize" value="50" min="10" step="2">
+          </div>
+          <div class="param-group">
+            <label for="nsgaII2spMaxGen" tooltip="NSGA-II (雙目標) 的最大迭代代數。">最大代數</label>
+            <input type="number" id="nsgaII2spMaxGen" value="5" min="1">
+          </div>
+        </div>
+
+        <div class="algo-param-section">
+          <h4>NSGA-II - 多目標 (生成點>=3時使用)</h4>
+          <div class="param-group">
+            <label for="nsgaIIMultiPopSize" tooltip="NSGA-II (多目標) 的種群數量。">種群數量</label>
+            <input type="number" id="nsgaIIMultiPopSize" value="20" min="10" step="2">
+          </div>
+          <div class="param-group">
+            <label for="nsgaIIMultiMaxGen" tooltip="NSGA-II (多目標) 的最大迭代代數。">最大代數</label>
+            <input type="number" id="nsgaIIMultiMaxGen" value="10" min="1">
+          </div>
+        </div>
+
+        <div class="algo-param-section">
+            <h4>通用遺傳演算法參數 (NSGA-II 使用)</h4>
+            <div class="param-group">
+              <label for="commonMutationRate" tooltip="NSGA-II 演算法的突變率 (0.0 - 1.0)。">突變率</label>
+              <input type="number" id="commonMutationRate" value="0.1" min="0" max="1" step="0.01">
+            </div>
+        </div>
+        <button id="applyAlgoParamsBtn" style="margin-left: 160px; margin-top: 15px;">套用優化參數</button>
+
+
+
+	  
     </div>	
   </div>
   
@@ -189,7 +244,6 @@
   <script src="code_1602_ga_19.js"></script>
   <script src="code_1602_ga_plus.js"></script>
   <script src="code_1606_greenwave_5.js"></script>
-  <!--<script src="code_1607_noneed.js"></script> 可以不加，已用不到-->
   
 </body>
 </html>
