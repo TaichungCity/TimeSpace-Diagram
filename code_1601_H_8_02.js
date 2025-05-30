@@ -224,6 +224,10 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeIdmPanel(); // 初始化 IDM 參數面板的顯示
 	setupSimulationDurationControls();
 
+    if (document.getElementById("applyAlgoParamsBtn")) { // Check if the new UI elements exist
+         initializeAlgoParamsUI();
+    }
+
     // 添加套用按鈕的事件監聽
     document.getElementById("applyIdmParamsBtn").addEventListener("click", () => {
         const new_v0_kmh = parseFloat(document.getElementById("idm_v0").value);
