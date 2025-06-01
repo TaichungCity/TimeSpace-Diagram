@@ -823,3 +823,38 @@ button:active {
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
+
+  .phase-section {
+    margin-bottom: 10px;
+  }
+  .direction-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 5px;
+  }
+  .direction-table td, .direction-table th {
+    padding: 2px 4px;
+    text-align: center;
+    font-size: 11px;
+    border: 1px solid #ccc;
+  }
+  .direction-table th {
+    font-weight: normal;
+    text-align: left;
+  }
+  .direction-table th.main-direction, .direction-table th.left-turn {
+    font-size: 14px;
+  }
+  .direction-table input[type="checkbox"] {
+    margin: 0;
+    vertical-align: middle;
+  }
+  .phase-section h4 {
+    margin: 5px 0;
+    font-size: 14px;
+  }
+  .phase-section input[type="number"] {
+    width: 60px;
+    padding: 2px;
+    font-size: 14px;
+  }
