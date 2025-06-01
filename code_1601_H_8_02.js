@@ -1029,10 +1029,24 @@ function renderPhases(phaseCount, phasesData, isSpawn = false, spawnDirection = 
     const phaseDiv = document.createElement("div");
     phaseDiv.className = "phase-section";
     phaseDiv.innerHTML = `<h4>時相 ${i + 1}</h4>`;
-    const dirDiv = document.createElement("div");
-    dirDiv.innerHTML = "<label>車流流向:</label>";
-    
+
+    // 創建表格
+    const table = document.createElement("table");
+    table.className = "direction-table";
+
+    // Row 0: 方向符號
+    const row0 = document.createElement("tr");
+    row0.innerHTML = `<th></th>`; // 左標題空白
     directions.forEach(dir => {
+      row0.innerHTML += `<td>${directionSymbols[dir]}</td>`;
+    });
+    table.appendChild(row0);
+
+    // Row 1: 主要方向與checkbox
+    const row1 = document.createElement("tr");
+    row1.innerHTML = `<th class="main-direction">主要方向</th>`; // 添加main-direction類別
+    directions.forEach(dir => {
+      const td = document.createElement("td");
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.name = `phase${i}_dir_${dir}`;
@@ -1061,17 +1075,20 @@ function renderPhases(phaseCount, phasesData, isSpawn = false, spawnDirection = 
             isChecked = false;
         }
         checkbox.disabled = true;
-      } else if (!isSpawn) {
+      } else {
         isChecked = phase.activeDirections.includes(dir);
       }
 
       checkbox.checked = isChecked;
       if (isChecked) checkbox.setAttribute("checked", "checked");
-      dirDiv.appendChild(checkbox);
-      dirDiv.appendChild(document.createTextNode(directionSymbols[dir] + " "));
+      td.appendChild(checkbox);
+      row1.appendChild(td);
     });
-    phaseDiv.appendChild(dirDiv);
-    
+    table.appendChild(row1);
+
+    phaseDiv.appendChild(table);
+
+    // 綠燈與紅燈輸入框
     const greenTime = isSpawn ? 1 : phase.greenTime;
     const redTime = isSpawn ? 0 : phase.redTime;
     phaseDiv.innerHTML += `
@@ -1080,30 +1097,36 @@ function renderPhases(phaseCount, phasesData, isSpawn = false, spawnDirection = 
     `;
     container.appendChild(phaseDiv);
 
-    // Add event listeners to update cycle time on input change
+    // 添加事件監聽以更新週期
     if (!isSpawn) {
       const greenInput = phaseDiv.querySelector(`input[name="phase${i}_green"]`);
       const redInput = phaseDiv.querySelector(`input[name="phase${i}_red"]`);
-      [greenInput, redInput].forEach(input => {
-        input.addEventListener("input", () => {
-          const newPhases = [];
-          for (let j = 0; j < phaseCount; j++) {
-            const activeDirections = directions.filter(dir => 
-              document.querySelector(`input[name="phase${j}_dir_${dir}"]`).checked
-            );
-            const greenTime = parseFloat(document.querySelector(`input[name="phase${j}_green"]`).value) || 0;
-            const redTime = parseFloat(document.querySelector(`input[name="phase${j}_red"]`).value) || 0;
-            newPhases.push({ activeDirections, greenTime, redTime });
-          }
-          selectedCircle.phases = newPhases;
-          updateCycleTimeDisplay(selectedCircle);
-        });
+      directions.forEach(dir => {
+        const checkbox = phaseDiv.querySelector(`input[name="phase${i}_dir_${dir}"]`);
+        checkbox.addEventListener("change", updatePhaseData);
       });
+      greenInput.addEventListener("input", updatePhaseData);
+      redInput.addEventListener("input", updatePhaseData);
     }
   }
 
-  // Initial update after rendering
+  // 初始更新週期顯示
   if (selectedCircle) {
+    updateCycleTimeDisplay(selectedCircle);
+  }
+
+  // 更新時相數據的輔助函數
+  function updatePhaseData() {
+    const newPhases = [];
+    for (let j = 0; j < phaseCount; j++) {
+      const activeDirections = directions.filter(dir => 
+        document.querySelector(`input[name="phase${j}_dir_${dir}"]`).checked
+      );
+      const greenTime = parseFloat(document.querySelector(`input[name="phase${j}_green"]`).value) || 0;
+      const redTime = parseFloat(document.querySelector(`input[name="phase${j}_red"]`).value) || 0;
+      newPhases.push({ activeDirections, greenTime, redTime });
+    }
+    selectedCircle.phases = newPhases;
     updateCycleTimeDisplay(selectedCircle);
   }
 }
