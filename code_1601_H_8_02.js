@@ -1018,14 +1018,28 @@ function renderPhases(phaseCount, phasesData, isSpawn = false, spawnDirection = 
   const directionSymbols = {
     'N': '↑', 'S': '↓', 'E': '→', 'W': '←', 'NE': '↗', 'SW': '↙', 'SE': '↘', 'NW': '↖'
   };
+  const leftTurnDirectionSymbols = {
+    'NL': '↑L', 'SL': '↓L', 'EL': '→L', 'WL': '←L', 
+    'NEL': '↗L', 'SWL': '↙L', 'SEL': '↘L', 'NWL': '↖L'
+  };
+  const rightTurnDirectionSymbols = {
+    'NR': '↑R', 'SR': '↓R', 'ER': '→R', 'WR': '←R', 
+    'NER': '↗R', 'SWR': '↙R', 'SER': '↘R', 'NWR': '↖R'
+  };
   const defaultDirections = [['N', 'S'], ['E', 'W']];
 
   for (let i = 0; i < phaseCount; i++) {
-    const phase = phasesData[i] || { 
-      activeDirections: defaultDirections[i] || [], 
-      greenTime: 10, 
-      redTime: 1 
+    const phase = phasesData[i] || {
+      activeDirections: defaultDirections[i] || [],
+      leftTurnDirections: [],
+      rightTurnDirections: [], // 新增：右轉方向
+      greenTime: 10,
+      redTime: 1
     };
+    // 確保 leftTurnDirections 和 rightTurnDirections 存在
+    if (!phase.leftTurnDirections) phase.leftTurnDirections = [];
+    if (!phase.rightTurnDirections) phase.rightTurnDirections = [];
+
     const phaseDiv = document.createElement("div");
     phaseDiv.className = "phase-section";
     phaseDiv.innerHTML = `<h4>時相 ${i + 1}</h4>`;
@@ -1034,9 +1048,9 @@ function renderPhases(phaseCount, phasesData, isSpawn = false, spawnDirection = 
     const table = document.createElement("table");
     table.className = "direction-table";
 
-    // Row 0: 方向符號
+    // Row 0: 主要方向符號
     const row0 = document.createElement("tr");
-    row0.innerHTML = `<th></th>`; // 左標題空白
+    row0.innerHTML = `<th></th>`;
     directions.forEach(dir => {
       row0.innerHTML += `<td>${directionSymbols[dir]}</td>`;
     });
@@ -1044,7 +1058,7 @@ function renderPhases(phaseCount, phasesData, isSpawn = false, spawnDirection = 
 
     // Row 1: 主要方向與checkbox
     const row1 = document.createElement("tr");
-    row1.innerHTML = `<th class="main-direction">主要方向</th>`; // 添加main-direction類別
+    row1.innerHTML = `<th class="main-direction">主要方向</th>`;
     directions.forEach(dir => {
       const td = document.createElement("td");
       const checkbox = document.createElement("input");
@@ -1055,24 +1069,15 @@ function renderPhases(phaseCount, phasesData, isSpawn = false, spawnDirection = 
 
       if (isSpawn && i === 0) {
         switch (spawnDirection) {
-          case 'E':
-          case 'W':
-            isChecked = (dir === 'E' || dir === 'W');
-            break;
-          case 'N':
-          case 'S':
-            isChecked = (dir === 'N' || dir === 'S');
-            break;
-          case 'NE':
-          case 'SW':
-            isChecked = (dir === 'NE' || dir === 'SW');
-            break;
-          case 'SE':
-          case 'NW':
-            isChecked = (dir === 'SE' || dir === 'NW');
-            break;
-          default:
-            isChecked = false;
+          case 'E': isChecked = (dir === 'E' || dir === 'W'); break;
+          case 'W': isChecked = (dir === 'W' || dir === 'E'); break;
+          case 'N': isChecked = (dir === 'N' || dir === 'S'); break;
+          case 'S': isChecked = (dir === 'S' || dir === 'N'); break;
+          case 'NE': isChecked = (dir === 'NE' || dir === 'SW'); break;
+          case 'SW': isChecked = (dir === 'SW' || dir === 'NE'); break;
+          case 'SE': isChecked = (dir === 'SE' || dir === 'NW'); break;
+          case 'NW': isChecked = (dir === 'NW' || dir === 'SE'); break;
+          default: isChecked = false;
         }
         checkbox.disabled = true;
       } else {
@@ -1085,6 +1090,56 @@ function renderPhases(phaseCount, phasesData, isSpawn = false, spawnDirection = 
       row1.appendChild(td);
     });
     table.appendChild(row1);
+
+    // Row 2: 左轉方向與checkbox
+    const row2 = document.createElement("tr");
+    row2.innerHTML = `<th class="left-turn-direction">左轉(L)</th>`;
+    directions.forEach(baseDir => {
+      const leftTurnDir = baseDir + 'L';
+      const td = document.createElement("td");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.name = `phase${i}_left_dir_${leftTurnDir}`;
+      checkbox.value = leftTurnDir;
+      
+      let isChecked = phase.leftTurnDirections.includes(leftTurnDir);
+
+      if (isSpawn && i === 0) {
+        checkbox.disabled = true;
+        isChecked = false;
+      }
+      
+      checkbox.checked = isChecked;
+      if (isChecked) checkbox.setAttribute("checked", "checked");
+      td.appendChild(checkbox);
+      row2.appendChild(td);
+    });
+    table.appendChild(row2);
+
+    // Row 3: 右轉方向與checkbox
+    const row3 = document.createElement("tr");
+    row3.innerHTML = `<th class="right-turn-direction">右轉(R)</th>`;
+    directions.forEach(baseDir => {
+      const rightTurnDir = baseDir + 'R';
+      const td = document.createElement("td");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.name = `phase${i}_right_dir_${rightTurnDir}`;
+      checkbox.value = rightTurnDir;
+      
+      let isChecked = phase.rightTurnDirections.includes(rightTurnDir);
+
+      if (isSpawn && i === 0) {
+        checkbox.disabled = true;
+        isChecked = false;
+      }
+      
+      checkbox.checked = isChecked;
+      if (isChecked) checkbox.setAttribute("checked", "checked");
+      td.appendChild(checkbox);
+      row3.appendChild(td);
+    });
+    table.appendChild(row3);
 
     phaseDiv.appendChild(table);
 
@@ -1102,8 +1157,20 @@ function renderPhases(phaseCount, phasesData, isSpawn = false, spawnDirection = 
       const greenInput = phaseDiv.querySelector(`input[name="phase${i}_green"]`);
       const redInput = phaseDiv.querySelector(`input[name="phase${i}_red"]`);
       directions.forEach(dir => {
-        const checkbox = phaseDiv.querySelector(`input[name="phase${i}_dir_${dir}"]`);
-        checkbox.addEventListener("change", updatePhaseData);
+        const mainDirCheckbox = phaseDiv.querySelector(`input[name="phase${i}_dir_${dir}"]`);
+        mainDirCheckbox.addEventListener("change", updatePhaseData);
+        
+        const leftTurnDir = dir + 'L';
+        const leftTurnCheckbox = phaseDiv.querySelector(`input[name="phase${i}_left_dir_${leftTurnDir}"]`);
+        if (leftTurnCheckbox) {
+          leftTurnCheckbox.addEventListener("change", updatePhaseData);
+        }
+
+        const rightTurnDir = dir + 'R';
+        const rightTurnCheckbox = phaseDiv.querySelector(`input[name="phase${i}_right_dir_${rightTurnDir}"]`);
+        if (rightTurnCheckbox) {
+          rightTurnCheckbox.addEventListener("change", updatePhaseData);
+        }
       });
       greenInput.addEventListener("input", updatePhaseData);
       redInput.addEventListener("input", updatePhaseData);
@@ -1117,17 +1184,46 @@ function renderPhases(phaseCount, phasesData, isSpawn = false, spawnDirection = 
 
   // 更新時相數據的輔助函數
   function updatePhaseData() {
+    if (!selectedCircle) return;
+    const isSpawnCurrent = document.getElementById("isSpawn").checked;
+    const phaseCountCurrent = isSpawnCurrent ? 1 : parseInt(document.getElementById("phaseCount").value);
+    
     const newPhases = [];
-    for (let j = 0; j < phaseCount; j++) {
-      const activeDirections = directions.filter(dir => 
-        document.querySelector(`input[name="phase${j}_dir_${dir}"]`).checked
-      );
-      const greenTime = parseFloat(document.querySelector(`input[name="phase${j}_green"]`).value) || 0;
-      const redTime = parseFloat(document.querySelector(`input[name="phase${j}_red"]`).value) || 0;
-      newPhases.push({ activeDirections, greenTime, redTime });
+    for (let j = 0; j < phaseCountCurrent; j++) {
+      const activeDirections = directions.filter(dir => {
+        const cb = document.querySelector(`input[name="phase${j}_dir_${dir}"]`);
+        return cb && cb.checked;
+      });
+      
+      const leftTurnDirections = [];
+      directions.forEach(baseDir => {
+        const leftTurnDir = baseDir + 'L';
+        const cb = document.querySelector(`input[name="phase${j}_left_dir_${leftTurnDir}"]`);
+        if (cb && cb.checked) {
+          leftTurnDirections.push(leftTurnDir);
+        }
+      });
+
+      const rightTurnDirections = [];
+      directions.forEach(baseDir => {
+        const rightTurnDir = baseDir + 'R';
+        const cb = document.querySelector(`input[name="phase${j}_right_dir_${rightTurnDir}"]`);
+        if (cb && cb.checked) {
+          rightTurnDirections.push(rightTurnDir);
+        }
+      });
+
+      const greenTimeInput = document.querySelector(`input[name="phase${j}_green"]`);
+      const redTimeInput = document.querySelector(`input[name="phase${j}_red"]`);
+
+      const greenTime = greenTimeInput ? (parseFloat(greenTimeInput.value) || 0) : (isSpawnCurrent ? 1 : 0);
+      const redTime = redTimeInput ? (parseFloat(redTimeInput.value) || 0) : (isSpawnCurrent ? 0 : 0);
+      
+      newPhases.push({ activeDirections, leftTurnDirections, rightTurnDirections, greenTime, redTime });
     }
     selectedCircle.phases = newPhases;
     updateCycleTimeDisplay(selectedCircle);
+    // reFresh(); // 根據需求決定是否在此處調用 reFresh()
   }
 }
 
@@ -1351,100 +1447,141 @@ document.getElementById("phaseCount").addEventListener("change", function() {
 // 修改 change 事件以即時更新鎖定狀態
 
 document.getElementById("circleForm").addEventListener("change", function(e) {
-  e.preventDefault();
-  if (selectedCircle) {
-    // 保存原始數據以進行比較
-    const originalData = {
-      phases: JSON.stringify(selectedCircle.phases), // 深拷貝比較
-      offset: selectedCircle.offset,
-      spawnEnabled: selectedCircle.spawnEnabled,
-      spawnFrequency: selectedCircle.spawnFrequency,
-      spawnDirection: selectedCircle.spawnDirection,
-      spawnName: selectedCircle.spawnName
-    };
+  if (!selectedCircle) return;
 
-    // 更新 selectedCircle 的屬性
-    const isSpawn = document.getElementById("isSpawn").checked;
-    const phaseCount = isSpawn ? 1 : parseInt(document.getElementById("phaseCount").value);
-    const newPhases = [];
-    const allDirections = ['N', 'S', 'E', 'W', 'NE', 'SW', 'SE', 'NW']; // Include all eight directions
+  const target = e.target;
+  const isSpawn = document.getElementById("isSpawn").checked;
+  const phaseCountInput = document.getElementById("phaseCount");
+  const spawnDirection = document.getElementById("spawnDirection").value;
 
-    for (let i = 0; i < phaseCount; i++) {
-      let activeDirections = allDirections.filter(dir => 
-        document.querySelector(`input[name="phase${i}_dir_${dir}"]`).checked
-      );
-      let greenTime = parseFloat(document.querySelector(`input[name="phase${i}_green"]`).value);
-      let redTime = parseFloat(document.querySelector(`input[name="phase${i}_red"]`).value);
-      
-      if (isSpawn) {
-        const spawnDirection = document.getElementById("spawnDirection").value;
-        // Set activeDirections based on spawnDirection and its opposite
-        switch (spawnDirection) {
-          case 'E':
-            activeDirections = ['E', 'W']; // E-W pair
-            break;
-          case 'W':
-            activeDirections = ['W', 'E']; // W-E pair
-            break;
-          case 'N':
-            activeDirections = ['N', 'S']; // N-S pair
-            break;
-          case 'S':
-            activeDirections = ['S', 'N']; // S-N pair
-            break;
-          case 'NE':
-            activeDirections = ['NE', 'SW']; // NE-SW pair
-            break;
-          case 'SW':
-            activeDirections = ['SW', 'NE']; // SW-NE pair
-            break;
-          case 'SE':
-            activeDirections = ['SE', 'NW']; // SE-NW pair
-            break;
-          case 'NW':
-            activeDirections = ['NW', 'SE']; // NW-SE pair
-            break;
-          default:
-            activeDirections = [spawnDirection]; // Fallback
-        }
-        greenTime = 1;
-        redTime = 0;
-      }
-      
-      newPhases.push({ activeDirections, greenTime, redTime });
-    }
-    
-    selectedCircle.phases = newPhases;
-    selectedCircle.offset = parseFloat(document.getElementById("offset").value);
-    selectedCircle.spawnEnabled = isSpawn;
-    selectedCircle.spawnFrequency = parseFloat(document.getElementById("spawnFreq").value);
-    selectedCircle.spawnDirection = document.getElementById("spawnDirection").value;
-    selectedCircle.spawnName = document.getElementById("spawnName").value.trim();
-
-    // 比較新舊數據是否有改變
-    const hasChanges = (
-      JSON.stringify(selectedCircle.phases) !== originalData.phases ||
-      selectedCircle.offset !== originalData.offset ||
-      selectedCircle.spawnEnabled !== originalData.spawnEnabled ||
-      selectedCircle.spawnFrequency !== originalData.spawnFrequency ||
-      selectedCircle.spawnDirection !== originalData.spawnDirection ||
-      selectedCircle.spawnName !== originalData.spawnName
-    );
-
-    // 更新設計區畫布
-    drawDesignGrid();
-
-    // 如果有改變且路網已生成，觸發更新
-    //if (hasChanges && simIntersections.length > 0) {
-    //  alert("2")
-    //  generateDesignNetwork(); // 重新生成路網並觸發時空圖更新
-    //}
-    reFresh();
+  // 更新路口名稱
+  if (target.id === "intersectionName") {
+    selectedCircle.intersectionName = target.value;
+    const displayName = selectedCircle.intersectionName.trim() 
+      ? selectedCircle.intersectionName 
+      : `(${selectedCircle.row},${selectedCircle.col})`;
+    document.getElementById("circleInfo").textContent = `路口位置：${displayName}`;
+    updateSpawnPointSelector();
   }
+
+  // 更新主燈號和引用主燈號
+  if (target.id === "isMaster") {
+    selectedCircle.isMaster = target.checked;
+    document.getElementById("masterName").disabled = !target.checked;
+    document.getElementById("refMaster").disabled = target.checked;
+    if (target.checked) {
+      selectedCircle.refMaster = null;
+      document.getElementById("refMaster").value = "";
+    }
+  }
+
+  if (target.id === "masterName") {
+    selectedCircle.masterName = target.value;
+  }
+
+  if (target.id === "refMaster") {
+    selectedCircle.refMaster = target.value || null;
+  }
+
+  // 更新生成點相關屬性
+  if (target.id === "isSpawn") {
+    selectedCircle.spawnEnabled = target.checked;
+    phaseCountInput.disabled = target.checked;
+    if (target.checked) {
+      phaseCountInput.value = 1;
+      selectedCircle.phases = [{
+        activeDirections: getSpawnActiveDirections(spawnDirection),
+        leftTurnDirections: [],
+        rightTurnDirections: [], // 新增：右轉方向
+        greenTime: 1,
+        redTime: 0
+      }];
+    } else {
+      // 恢復默認時相
+      selectedCircle.phases = [
+        { activeDirections: ['N', 'S'], leftTurnDirections: [], rightTurnDirections: [], greenTime: 10, redTime: 1 },
+        { activeDirections: ['E', 'W'], leftTurnDirections: [], rightTurnDirections: [], greenTime: 10, redTime: 1 }
+      ];
+      phaseCountInput.value = selectedCircle.phases.length;
+    }
+    renderPhases(selectedCircle.phases.length, selectedCircle.phases, target.checked, spawnDirection);
+    updateCycleTimeDisplay(selectedCircle);
+  }
+
+  if (target.id === "spawnDirection") {
+    if (isSpawn) {
+      selectedCircle.spawnDirection = target.value;
+      selectedCircle.phases = [{
+        activeDirections: getSpawnActiveDirections(target.value),
+        leftTurnDirections: [],
+        rightTurnDirections: [], // 新增：右轉方向
+        greenTime: 1,
+        redTime: 0
+      }];
+      renderPhases(1, selectedCircle.phases, true, target.value);
+      updateCycleTimeDisplay(selectedCircle);
+    }
+  }
+
+  if (target.id === "phaseCount" && !isSpawn) {
+    const newCount = parseInt(target.value) || 1;
+    const currentCount = selectedCircle.phases.length;
+    if (newCount > currentCount) {
+      for (let i = currentCount; i < newCount; i++) {
+        selectedCircle.phases.push({
+          activeDirections: [],
+          leftTurnDirections: [],
+          rightTurnDirections: [], // 新增：右轉方向
+          greenTime: 10,
+          redTime: 1
+        });
+      }
+    } else if (newCount < currentCount) {
+      selectedCircle.phases = selectedCircle.phases.slice(0, newCount);
+    }
+    renderPhases(newCount, selectedCircle.phases, false, spawnDirection);
+    updateCycleTimeDisplay(selectedCircle);
+  }
+
+  // 更新鎖定狀態
+  if (target.id === "lockCircle") {
+    selectedCircle.locked = target.checked;
+    drawDesignGrid();
+  }
+
+  // 更新偏移值
+  if (target.id === "offsetInput") {
+    const offset = parseFloat(target.value) || 0;
+    selectedCircle.offset = Math.max(0, offset);
+    drawDesignGrid();
+  }
+
+  // 更新生成頻率
+  if (target.id === "spawnFrequencyInput") {
+    const frequency = parseFloat(target.value) || 5;
+    selectedCircle.spawnFrequency = Math.max(0, frequency);
+  }
+
+  reFresh();
 });
 
-    let designIntersections = [];
-    let designRoads = [];
+// 輔助函數：根據生成點方向返回對應的活躍方向
+function getSpawnActiveDirections(direction) {
+  switch (direction) {
+    case 'E': return ['E', 'W'];
+    case 'W': return ['W', 'E'];
+    case 'N': return ['N', 'S'];
+    case 'S': return ['S', 'N'];
+    case 'NE': return ['NE', 'SW'];
+    case 'SW': return ['SW', 'NE'];
+    case 'SE': return ['SE', 'NW'];
+    case 'NW': return ['NW', 'SE'];
+    default: return [];
+  }
+}
+
+let designIntersections = [];
+let designRoads = [];
 
 function generateDesignNetwork() {
   designIntersections = [];
@@ -2178,6 +2315,8 @@ document.getElementById("exportJsonBtn").addEventListener("click", function() {
       selected: circle.selected,
       phases: circle.phases.map(phase => ({
         activeDirections: phase.activeDirections,
+        leftTurnDirections: phase.leftTurnDirections || [], // 確保左轉方向，若無則導出空陣列
+        rightTurnDirections: phase.rightTurnDirections || [], // 新增：右轉方向，若無則導出空陣列
         greenTime: phase.greenTime,
         redTime: phase.redTime
       })),
@@ -2190,7 +2329,7 @@ document.getElementById("exportJsonBtn").addEventListener("click", function() {
       isMaster: circle.isMaster,
       masterName: circle.masterName,
       refMaster: circle.refMaster,
-      intersectionName: circle.intersectionName // 新增
+      intersectionName: circle.intersectionName
     })),
     roadDistances: roadDistances
   };
@@ -2211,119 +2350,62 @@ document.getElementById("importJsonInput").addEventListener("change", function(e
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = function(event) {
+  reader.onload = function(e) {
     try {
-      const importedData = JSON.parse(event.target.result);
-      if (!importedData.gridCircles || !importedData.roadDistances) {
-        alert("無效的 JSON 文件格式！");
-        return;
-      }
+      const data = JSON.parse(e.target.result);
+      gridCircles = data.gridCircles.map(circle => ({
+        row: circle.row,
+        col: circle.col,
+        x: circle.x,
+        y: circle.y,
+        selected: circle.selected || false,
+        phases: circle.phases.map(phase => ({
+          activeDirections: phase.activeDirections || [],
+          leftTurnDirections: phase.leftTurnDirections || [],
+          rightTurnDirections: phase.rightTurnDirections || [], // 新增：右轉方向，若無則導入空陣列
+          greenTime: phase.greenTime || 10,
+          redTime: phase.redTime || 1
+        })),
+        offset: circle.offset || 0,
+        spawnEnabled: circle.spawnEnabled || false,
+        spawnFrequency: circle.spawnFrequency || 5,
+        spawnDirection: circle.spawnDirection || "E",
+        spawnName: circle.spawnName || "",
+        locked: circle.locked || false,
+        isMaster: circle.isMaster || false,
+        masterName: circle.masterName || "",
+        refMaster: circle.refMaster || null,
+        intersectionName: circle.intersectionName || ""
+      }));
+      roadDistances = data.roadDistances || {};
 
-      // 計算早期數據的 GRID_COLS 和 GRID_ROWS
-      let GRID_COLS_old = 0, GRID_ROWS_old = 0;
-      importedData.gridCircles.forEach(data => {
-        GRID_COLS_old = Math.max(GRID_COLS_old, data.col + 1);
-        GRID_ROWS_old = Math.max(GRID_ROWS_old, data.row + 1);
-      });
-
-      // 保存當前值
-      const GRID_COLS_current = GRID_COLS;
-      const GRID_ROWS_current = GRID_ROWS;
-
-      // 更新為較大的尺寸（以早期尺寸為優先）
-      GRID_COLS = Math.max(GRID_COLS_old, GRID_COLS_current);
-      GRID_ROWS = Math.max(GRID_ROWS_old, GRID_ROWS_current);
-
-      // 更新畫布尺寸
-      const designCanvas = document.getElementById("designCanvas");
-      designCanvas.width = GRID_SPACING_X * GRID_COLS + GRID_SPACING_X;
-      designCanvas.height = GRID_SPACING_Y * GRID_ROWS + GRID_SPACING_Y;
-
-      // 重新計算 cellWidth 和 cellHeight
-      const cellWidth = (designCanvas.width - 2 * marginX) / (GRID_COLS - 1);
-      const cellHeight = (designCanvas.height - 2 * marginY) / (GRID_ROWS - 1);
-
-      // 創建新的 gridCircles，適應最終尺寸
-      let newGridCircles = [];
-      for (let r = 0; r < GRID_ROWS; r++) {
-        for (let c = 0; c < GRID_COLS; c++) {
-          // 查找是否有對應的早期數據
-          const importedCircle = importedData.gridCircles.find(
-            data => data.row === r && data.col === c
-          );
-
-          if (importedCircle) {
-            // 使用早期數據
-            newGridCircles.push({
-              row: importedCircle.row,
-              col: importedCircle.col,
-              x: marginX + c * cellWidth,
-              y: marginY + r * cellHeight,
-              selected: importedCircle.selected,
-              phases: importedCircle.phases.map(phase => ({
-                activeDirections: phase.activeDirections,
-                greenTime: phase.greenTime,
-                redTime: phase.redTime
-              })),
-              offset: importedCircle.offset,
-              spawnEnabled: importedCircle.spawnEnabled,
-              spawnFrequency: importedCircle.spawnFrequency,
-              spawnDirection: importedCircle.spawnDirection,
-              spawnName: importedCircle.spawnName || "",
-              locked: importedCircle.locked || false,
-              isMaster: importedCircle.isMaster || false,
-              masterName: importedCircle.masterName || "",
-              refMaster: importedCircle.refMaster || null,
-              intersectionName: importedCircle.intersectionName || ""
-            });
-          } else {
-            // 補充新的圓點（使用默認屬性）
-            newGridCircles.push({
-              row: r,
-              col: c,
-              x: marginX + c * cellWidth,
-              y: marginY + r * cellHeight,
-              selected: false,
-              phases: [
-                { activeDirections: ['N', 'S'], greenTime: 10, redTime: 1 },
-                { activeDirections: ['E', 'W'], greenTime: 10, redTime: 1 }
-              ],
-              offset: 0,
-              spawnEnabled: false,
-              spawnFrequency: 5,
-              spawnDirection: "E",
-              spawnName: "",
-              locked: false,
-              isMaster: false,
-              masterName: "",
-              refMaster: null,
-              intersectionName: ""
-            });
-          }
-        }
-      }
-
-      // 更新全局變數
-      gridCircles = newGridCircles;
-      roadDistances = importedData.roadDistances;
-
-      // 刷新顯示
+      // 更新 UI
       drawDesignGrid();
       if (selectedCircle) {
-        const updatedCircle = gridCircles.find(c => c.row === selectedCircle.row && c.col === selectedCircle.col);
-        if (updatedCircle) {
-          selectedCircle = updatedCircle;
-          showCircleSettings(selectedCircle);
-        }
+        const isSpawn = selectedCircle.spawnEnabled;
+        const phaseCount = selectedCircle.phases.length;
+        document.getElementById("phaseCount").value = phaseCount;
+        document.getElementById("isSpawn").checked = isSpawn;
+        document.getElementById("spawnDirection").value = selectedCircle.spawnDirection || "E";
+        document.getElementById("intersectionName").value = selectedCircle.intersectionName || "";
+        document.getElementById("lockCircle").checked = selectedCircle.locked;
+        document.getElementById("isMaster").checked = selectedCircle.isMaster;
+        document.getElementById("masterName").value = selectedCircle.masterName || "";
+        document.getElementById("masterName").disabled = !selectedCircle.isMaster;
+        document.getElementById("refMaster").value = selectedCircle.refMaster || "";
+        document.getElementById("refMaster").disabled = selectedCircle.isMaster;
+        document.getElementById("offsetInput").value = selectedCircle.offset || 0;
+        document.getElementById("spawnFrequencyInput").value = selectedCircle.spawnFrequency || 5;
+        document.getElementById("phaseCount").disabled = isSpawn;
+        renderPhases(phaseCount, selectedCircle.phases, isSpawn, selectedCircle.spawnDirection);
+        updateCycleTimeDisplay(selectedCircle);
       }
-      reFresh();
       updateSpawnPointSelector();
-      previousSelectorContent = document.getElementById("spawnPointSelector").innerHTML;
-      alert(`成功導入路網數據！畫布大小：${GRID_COLS}×${GRID_ROWS}`);
+      reFresh();
+	  alert(`成功導入路網數據！`);
     } catch (err) {
-      alert("導入失敗：無效的 JSON 文件！\n" + err.message);
+      alert("JSON 檔案格式錯誤：" + err.message);
     }
-    ParetoUI();
   };
   reader.readAsText(file);
 });
