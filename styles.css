@@ -842,7 +842,9 @@ button:active {
     font-weight: normal;
     text-align: left;
   }
-  .direction-table th.main-direction, .direction-table th.left-turn {
+  .direction-table th.main-direction,
+  .direction-table th.left-turn-direction,
+  .direction-table th.right-turn-direction {
     font-size: 14px;
   }
   .direction-table input[type="checkbox"] {
