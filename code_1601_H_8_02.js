@@ -3044,3 +3044,69 @@ function restoreSettingsPanel(settingsPanel, minimizedIcon, panelContent, curren
     }, 10); // 短暫延遲以觸發動畫
   }, 50); // 確保淡出完成
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const stCanvas = document.getElementById("spacetimeCanvas");
+  const tooltip = document.getElementById("spacetimeTooltip");
+
+  if (!stCanvas || !tooltip) {
+    console.error("Spacetime canvas or tooltip element not found!");
+    return;
+  }
+
+  // Helper function to get the page zoom, as used elsewhere in the application
+  function getZoomFactor() {
+    return parseFloat(document.body.style.zoom) || 1;
+  }
+
+  // Event listener for mouse movement on the canvas
+  stCanvas.addEventListener("mousemove", function(e) {
+    const zoomFactor = getZoomFactor();
+
+    // --- Start: Recalculate scaling factors (logic from updateSpacetimeOffscreen) ---
+    if (spawnPointsList.length === 0 || !spawnPointsList[selectedSpawnIndex]) {
+      tooltip.style.display = "none";
+      return;
+    }
+    const selectedSpawn = spawnPointsList[selectedSpawnIndex];
+    const roads = continuousRoadsBySpawn[selectedSpawn.id];
+    if (!roads || roads.length === 0) {
+      tooltip.style.display = "none";
+      return;
+    }
+
+    const maxTime = fixedSimulationDuration / timeScale;
+    const maxDistance = roads.reduce((sum, road) => sum + road.distance, 0);
+
+    const timeScaleFactor = stCanvas.width / maxTime;
+    const margin = 15;
+    const drawableHeight = stCanvas.height - 2 * margin;
+    const distanceScale = maxDistance > 0 ? drawableHeight / maxDistance : 0;
+    // --- End: Recalculate scaling factors ---
+
+    // Get mouse position relative to the canvas, CORRECTED FOR ZOOM
+    const rect = stCanvas.getBoundingClientRect();
+    const mouseX = (e.clientX - rect.left) / zoomFactor;
+    const mouseY = (e.clientY - rect.top) / zoomFactor;
+
+    // Convert pixel coordinates back to simulation time and distance
+    const timeInSeconds = (mouseX / timeScaleFactor) * timeScale;
+    const distanceFromOrigin = (stCanvas.height - margin - mouseY) / distanceScale;
+
+    // Check if the cursor is within the valid chart area
+    if (distanceFromOrigin >= 0 && distanceFromOrigin <= maxDistance && timeInSeconds >= 0 && timeInSeconds <= fixedSimulationDuration) {
+      // Update tooltip content and position
+      tooltip.innerHTML = `(${timeInSeconds.toFixed(1)} 秒, ${distanceFromOrigin.toFixed(1)} 公尺)`;
+      tooltip.style.display = 'block';
+      
+      // MODIFICATION: Use clientX/Y for positioning relative to the viewport.
+      // This works perfectly with position:fixed to keep the tooltip next to the cursor.
+      tooltip.style.left = (e.clientX + 0) + 'px';
+      tooltip.style.top = (e.clientY + 0) + 'px';
+
+    } else {
+      // Hide tooltip if the cursor is outside the chart area
+      tooltip.style.display = 'none';
+    }
+  });
+});
